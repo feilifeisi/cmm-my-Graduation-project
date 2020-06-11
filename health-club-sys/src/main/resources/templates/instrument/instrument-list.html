@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html class="x-admin-sm" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="head::header" ></head>
+    <body>
+        <div class="x-nav">
+          	<span class="layui-breadcrumb">
+	            <a href="#">首页</a>
+	            <a href="#">仪器管理</a>
+	            <a><cite>仪器列表</cite></a>
+          	</span>
+          	<a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" 
+          	onclick="location.reload()" title="刷新">
+            	<i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+        </div>
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-body ">
+                            <form class="layui-form layui-col-space5" action="list">
+                                 <input type="hidden" th:value="${pageBean.currPageNo}" name="pageIndex" id="pageIndex"/>
+                                <div class="layui-inline layui-show-xs-block">
+                                    <input class="layui-input"  autocomplete="off" placeholder="开始日" name="begin_date" id="start" th:value="${begin_date}">
+                                </div>
+                                <div class="layui-inline layui-show-xs-block">
+                                    <input class="layui-input"  autocomplete="off" placeholder="截止日" name="end_date" id="end" th:value="${end_date}">
+                                </div>
+                                <div class="layui-inline layui-show-xs-block">
+                                    <input type="text" name="name" th:value="${name}"  placeholder="请输入仪器名" autocomplete="off" class="layui-input">
+                                </div>
+                                <div class="layui-inline layui-show-xs-block">
+                                    <input type="text" name="count" th:value="${count}"  placeholder="请输入仪器数量" autocomplete="off" class="layui-input">
+                                </div>
+                                <div class="layui-inline layui-show-xs-block">
+                                    <button class="layui-btn sreach"  lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+                                </div>
+                            </form>
+                        </div>
+                        <div th:if="${users.role != 2}" class="layui-card-header">
+                            <button class="layui-btn" onclick="xadmin.open('添加','toadd',700,500)"><i class="layui-icon"></i>添加仪器</button>
+                        </div>
+                        <div class="layui-card-body layui-table-body layui-table-main">
+                            <table class="layui-table layui-form">
+                                <thead>
+                                  	<tr>
+	                                    <th>ID</th>
+	                                    <th>仪器名</th>
+	                                    <th>仪器数量</th>
+	                                    <th>类型</th>
+	                                    <th>修改日期</th>
+                                        <th>总使用次数</th>
+                                        <th>调用</th>
+	                                    <th th:if="${users.role != 2}">操作</th>
+                                	</tr>
+                                </thead>
+                                <tbody>
+                                  	<tr th:each="item : ${list}">
+	                                    <td>[[${item.id}]]</td>
+	                                    <td>[[${item.name}]]</td>
+                                        <td>[[${item.count}]]</td>
+	                                    <td>
+	                                    	<span th:if="${item.state == 1}">仪器</span>
+	                                    </td>
+	                                    <td th:text="${item.create_time}"></td>
+                                        <td>[[${item.employ}]]</td>
+                                        <td>
+                                            <a th:if="${item.count != 0 }"><button class="layui-btn" th:onclick="|javascript:upd('1','${item.employ}','${item.count}','${item.id}')|">调用</button></a>
+                                            <span th:if="${item.count == 0 }">无仪器</span>
+                                        </td>
+	                                    <td th:if="${users.role != 2}" class="td-manage">
+	                                    	<a title="编辑" th:onclick="|javascript:xadmin.open('编辑','toedit?id=${item.id}',700,500)|" href="javascript:;">
+                                                <i class="layui-icon">&#xe642;</i></a>&nbsp;
+                                            <a title="删除" th:onclick="'javascript:delet('+${item.id}+')'" href="javascript:;">
+                                                <i class="layui-icon">&#xe640;</i></a>
+	                                    </td>
+                                  	</tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="layui-card-body ">
+                        	<div  th:replace="page::page"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </body>
+    <script>
+      	layui.config({
+		    base: 'js/' //你存放新模块的目录，注意，不是layui的模块目录
+	  	}).use(['laydate','form'], function(){
+	        var laydate = layui.laydate,form=layui.form; 
+	        //执行一个laydate实例
+	        laydate.render({
+	          elem: '#start' //指定元素
+	        });
+
+	        //执行一个laydate实例
+	        laydate.render({
+	          elem: '#end' //指定元素
+	        });
+	        form.render('select'); //刷新select选择框渲染
+      	});
+      	
+      	/*仪器-调用*/
+      	function upd(yesno,beingused,count,id){
+          	layer.confirm('确认要更改吗？',function(index){
+              	$.ajax({
+              		url:'updInstrumentList',
+              		data:{
+              		    id:id,
+                        yesno:yesno,
+                        beingused:beingused,
+                        count:count
+                    },
+              		success:function(res){
+              			if(res.code == 0){
+              				layer.msg('调用成功!',{icon:1,time:1000},function(){
+              					location.reload()
+              				});
+              			}else{
+              				layer.msg('调用失败!',{icon:5,time:1000});
+              			}
+              		},
+              		error:function(err){
+              			layer.msg(err,{icon:5,time:1000},function(){
+          					location.reload()
+          				});
+              		}
+              	})
+              	
+      		});
+      	}
+
+        /*仪器-删除*/
+        function delet(id){
+            layer.confirm('确认要删除吗？',function(index){
+                $.ajax({
+                    url:'delet',
+                    data:{
+                        id:id
+                    },
+                    success:function(res){
+                        if(res.code == 0){
+                            layer.msg('已删除!',{icon:1,time:1000},function(){
+                                location.reload()
+                            });
+                        }else{
+                            layer.msg('删除失败!',{icon:5,time:1000});
+                        }
+                    },
+                    error:function(err){
+                        layer.msg(err,{icon:5,time:1000},function(){
+                            location.reload()
+                        });
+                    }
+                })
+
+            });
+        }
+    </script>
+</html>

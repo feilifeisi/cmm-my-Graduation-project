@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.net.mapper.UsersMapper" >
+  <resultMap id="BaseResultMap" type="com.net.entity.Users" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="pwd" property="pwd" jdbcType="VARCHAR" />
+    <result column="role" property="role" jdbcType="VARCHAR" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="sex" property="sex" jdbcType="INTEGER" />
+    <result column="stopstate" property="stopstate" jdbcType="VARCHAR" />
+    <result column="create_time" property="create_time" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, pwd, role,  tel, sex, stopstate, create_time
+  </sql>
+  <!-- 关键字模糊查询用户 -->
+  <select id="selAll" parameterType="map" resultMap="BaseResultMap">
+      SELECT * FROM users u WHERE 1=1 and role !=0
+      	<if test="like != null and like != ''">
+          and (
+              u.name LIKE CONCAT("%",#{like},"%")
+              OR u.tel LIKE CONCAT("%",#{like},"%")
+          )
+      	</if>
+	   	<if test="role!=null and role!=''">
+	     	and role = #{role}
+	   	</if>
+	   	<if test="sex!=null and sex!=''">
+	     	and sex = #{sex}
+	   	</if>
+      	<if test="begin_date!=null and begin_date!=''">
+	     	and DATE_FORMAT(u.create_time, '%Y-%m-%d') &gt;= #{begin_date}
+	   	</if>
+	   	<if test="end_date!=null and end_date!=''">
+	     	and DATE_FORMAT(u.create_time, '%Y-%m-%d') &lt;= #{end_date}
+	   	</if>
+      	ORDER BY u.create_time DESC
+      	<if test="begin!=null and last!=null">
+          	LIMIT #{begin},#{last}
+      	</if>
+  	</select>
+	<!-- 查询相同账户的用户 -->
+  <select id="findUserByName" parameterType="String" resultType="Users">
+      SELECT  * FROM users WHERE name = #{name}
+  </select>
+  <!-- 用户登录 -->
+  <select id="login" parameterType="Users" resultType="Users">
+      SELECT  * FROM users WHERE name=#{name} and pwd = #{pwd}
+  </select>
+  <select id="findteacher" resultType="Users">
+      SELECT  * FROM users WHERE role=2
+  </select>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from users
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from users
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.net.entity.Users" >
+    insert into users (name, pwd,
+      role, tel,
+     sex,stopstate ,create_time
+      )
+    values (#{name,jdbcType=VARCHAR}, #{pwd,jdbcType=VARCHAR},
+      #{role,jdbcType=VARCHAR},  #{tel,jdbcType=VARCHAR},
+       #{sex,jdbcType=INTEGER},#{stopstate,jdbcType=VARCHAR}, now()
+      )
+  </insert>
+
+
+  <insert id="insertSelective" parameterType="com.net.entity.Users" >
+    insert into users
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="pwd != null" >
+        pwd,
+      </if>
+      <if test="role != null" >
+        role,
+      </if>
+      <if test="tel != null" >
+        tel,
+      </if>
+      <if test="sex != null" >
+        sex,
+      </if>
+      <if test="stopstate != null" >
+        stopstate,
+      </if>
+      <if test="create_time != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="pwd != null" >
+        #{pwd,jdbcType=VARCHAR},
+      </if>
+      <if test="role != null" >
+        #{role,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null" >
+        #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        #{sex,jdbcType=INTEGER},
+      </if>
+      <if test="stopstate != null" >
+        #{stopstate,jdbcType=VARCHAR},
+      </if>
+      <if test="create_time != null" >
+        #{create_time,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.net.entity.Users" >
+    update users
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="pwd != null" >
+        pwd = #{pwd,jdbcType=VARCHAR},
+      </if>
+      <if test="role != null" >
+        role = #{role,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null" >
+        tel = #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        sex = #{sex,jdbcType=INTEGER},
+      </if>
+      <if test="create_time != null" >
+        create_time = #{create_time,jdbcType=VARCHAR},
+      </if>
+      <if test="stopstate != null" >
+        stopstate = #{stopstate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.net.entity.Users" >
+    update users
+    set name = #{name,jdbcType=VARCHAR},
+      pwd = #{pwd,jdbcType=VARCHAR},
+      role = #{role,jdbcType=VARCHAR},
+      nickname = #{nickname,jdbcType=VARCHAR},
+      tel = #{tel,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      sex = #{sex,jdbcType=INTEGER},
+      create_time = #{create_time,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.net.mapper.InstrumentMapper" >
+    <!--通过id查询单挑数据-->
+    <select id="selInstrumentListById" parameterType="java.lang.Integer" resultType="Instrument">
+        select * from instrument where id=#{id}
+    </select>
+    <!--查询分页列表-->
+    <select id="selInstrumentList" parameterType="java.util.Map" resultType="Instrument">
+        SELECT u.*,(select count(1) from transfer where instruId=u.id) beingused FROM instrument u
+        WHERE 1=1
+        <if test="name != null and name != ''">
+            and u.name LIKE CONCAT("%",#{name},"%")
+        </if>
+        <if test="count != null and count != ''">
+        and u.count = #{count}
+    </if>
+        <if test="state != null and state != ''">
+            and u.state = #{state}
+        </if>
+        <if test="employ != null and employ != ''">
+            and u.employ = #{employ}
+        </if>
+        <if test="begin_date!=null and begin_date!=''">
+            and DATE_FORMAT(u.create_time, '%Y-%m-%d') &gt;= #{begin_date}
+        </if>
+        <if test="end_date!=null and end_date!=''">
+            and DATE_FORMAT(u.create_time, '%Y-%m-%d') &lt;= #{end_date}
+        </if>
+        ORDER BY u.create_time DESC
+        <if test="begin!=null and last!=null">
+            LIMIT #{begin},#{last}
+        </if>
+    </select>
+
+    <!--编辑-->
+    <update id="updInstrumentList" parameterType="com.net.entity.Instrument" >
+        update instrument
+        <set >
+            <if test="name != null and name!= ''" >
+                name = #{name},
+            </if>
+            <if test="state != null and state!= ''" >
+                state = #{state},
+            </if>
+            <if test="wastage != null and wastage!= ''" >
+                wastage = #{wastage},
+            </if>
+            <if test="count != null and count!= ''" >
+                count = #{count},
+            </if>
+            <if test="employ != null and employ!= ''" >
+                employ = #{employ},
+            </if>
+            <if test="create_time != null and create_time!= ''" >
+                create_time = #{create_time},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <!--添加关联表-->
+    <insert id="inserttransfer" parameterType="com.net.entity.Transfer" >
+    insert into transfer (usersId,instruId)
+    values (#{usersId},#{instruId})
+  </insert>
+
+
+    <!--删除关联表-->
+    <delete id="deletetransfer" parameterType="java.lang.Integer">
+      delete from transfer where id=#{id}
+  </delete>
+
+    <!--查询用户和仪器零件使用列表-->
+    <select id="selInstrumentUsers" parameterType="java.util.Map" resultType="InstruUsers">
+        SELECT
+        t.id,
+        t.instruId,
+        t.usersId,
+        i.name instruname,
+        i.create_time instrucreate_time,
+        i.wastage,
+        i.count,
+        i.state,
+        i.employ,
+        u.name usersname,
+        u.tel,
+        u.sex,
+        u.role,
+        u.create_time userscreate_time,
+        u.stopstate
+        FROM
+        transfer t,
+        instrument i,
+        users u
+        WHERE
+        t.instruId = i.id
+        AND t.usersId = u.id and u.role != 0
+        <if test="instruname != null and instruname != ''">
+          and i.name like CONCAT("%",#{instruname},"%")
+        </if>
+        <if test="usersname != null and usersname != ''">
+          and u.name like CONCAT("%",#{usersname},"%")
+        </if>
+        <if test="tel != null and tel != ''">
+            and u.tel like CONCAT("%",#{tel},"%")
+        </if>
+        <if test="sex != null and sex != ''">
+            and u.sex = #{sex}
+        </if>
+        <if test="state != null and state != ''">
+            and i.state = #{state}
+        </if>
+        <if test="role != null and role != ''">
+            and u.role = #{role}
+        </if>
+        <if test="begin!=null and last!=null">
+            LIMIT #{begin},#{last}
+        </if>
+    </select>
+
+    <!--添加仪器零件表-->
+    <insert id="addInstrument" parameterType="com.net.entity.Instrument" >
+    insert into instrument (name,count,state,create_time)
+    values (#{name},#{count},#{state},now())
+  </insert>
+
+    <!--通过名称查询信息-->
+    <select id="addInstrumentByName" parameterType="java.lang.String" resultType="Instrument">
+        select * from instrument where name=#{name}
+    </select>
+    <!--报警-->
+    <select id="selInstrumentBaoJin" resultType="Instrument">
+        select * from instrument where count &lt; 3
+    </select>
+
+    <delete id="delet" parameterType="java.lang.Integer" >
+    delete from instrument
+    where id = #{id}
+  </delete>
+
+</mapper>

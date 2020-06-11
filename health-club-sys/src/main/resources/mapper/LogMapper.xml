@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.net.mapper.LogMapper" >
+    <insert id="addLog" parameterType="Log">
+         insert into log (cause,create_time) values (#{cause},now())
+    </insert>
+
+    <!--查询分页列表-->
+    <select id="selLog" parameterType="java.util.Map" resultType="Log">
+        SELECT * from log
+        WHERE 1=1
+        <if test="cause != null and cause != ''">
+            and cause LIKE CONCAT("%",#{cause},"%")
+        </if>
+        <if test="begin_date!=null and begin_date!=''">
+            and DATE_FORMAT(create_time, '%Y-%m-%d') &gt;= #{begin_date}
+        </if>
+        <if test="end_date!=null and end_date!=''">
+            and DATE_FORMAT(create_time, '%Y-%m-%d') &lt;= #{end_date}
+        </if>
+        ORDER BY create_time DESC
+        <if test="begin!=null and last!=null">
+            LIMIT #{begin},#{last}
+        </if>
+    </select>
+</mapper>
